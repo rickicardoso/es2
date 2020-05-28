@@ -1,9 +1,23 @@
-FROM maven:3.5-jdk-8 AS build  
-COPY src /usr/src/app/src  
-COPY pom.xml /usr/src/app  
-RUN mvn -f /usr/src/app/pom.xml clean package
+pipeline {
+    agent any
+    tools { 
+        maven 'Maven 3.3.9' 
+        jdk 'jdk8' 
+    }
+    stages {
+        stage ('Initialize') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    echo "M2_HOME = ${M2_HOME}"
+                ''' 
+            }
+        }
 
-FROM gcr.io/distroless/java  
-COPY --from=build /usr/src/app/target/helloworld-1.0.0-SNAPSHOT.jar /usr/app/helloworld-1.0.0-SNAPSHOT.jar  
-EXPOSE 8080  
-ENTRYPOINT ["java","-jar","/usr/app/helloworld-1.0.0-SNAPSHOT.jar"]  
+        stage ('Build') {
+            steps {
+                echo 'This is a minimal pipeline.'
+            }
+        }
+    }
+}
