@@ -24,15 +24,17 @@ stage ('Runing Container to test built Docker Image'){
     powershell "docker run -dit --name ${container} -p 80:80 ${imagename}"
     }
     
-stage ('Build') {
-            steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
-            }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
-                }
-            }
+stage('Build Jar'){
+        agent {
+          docker {
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
+          }
         }
+        steps {
+            sh 'mvn package'
+            stash includes: 'target/*.jar', name: 'targetfiles'
+        }
+    }
 
 }
