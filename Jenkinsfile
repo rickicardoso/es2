@@ -1,23 +1,38 @@
-pipeline {
-    agent any
-    tools { 
-        maven 'Maven 3.3.9' 
-        jdk 'jdk8' 
+def dockeruser = "40404040"
+def imagename = "ubuntu:16"
+def container = "apache2"
+node {
+   echo 'Building Apache Docker Image'
+
+stage('Git Checkout') {
+    git 'https://github.com/jvpreis/ESII'
     }
-    stages {
-        stage ('Initialize') {
+    
+stage('Build Docker Imagae'){
+     powershell "docker build -t  ${imagename} ."
+    }
+    
+stage('Stop Existing Container'){
+     powershell "docker stop ${container}"
+    }
+    
+stage('Remove Existing Container'){
+     powershell "docker rm ${container}"
+    }
+    
+stage ('Runing Container to test built Docker Image'){
+    powershell "docker run -dit --name ${container} -p 80:80 ${imagename}"
+    }
+    
+stage ('Build') {
             steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    echo "M2_HOME = ${M2_HOME}"
-                ''' 
+                sh 'mvn -Dmaven.test.failure.ignore=true install' 
+            }
+            post {
+                success {
+                    junit 'target/surefire-reports/**/*.xml' 
+                }
             }
         }
 
-        stage ('Build') {
-            steps {
-                echo 'This is a minimal pipeline.'
-            }
-        }
-    }
 }
